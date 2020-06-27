@@ -1,0 +1,24 @@
+{
+	"compilerOptions": {
+		"target": "ESNext",
+		"module": "CommonJS",
+		"moduleResolution": "Node",
+
+		"allowJs": true,
+
+		"noImplicitAny": true,
+		"strictNullChecks": true,
+		"removeComments": true,
+		"sourceMap": false,
+		"locale": "zh-cn",
+		"newLine": "lf",
+		"pretty": true,
+		"allowUmdGlobalAccess": true,
+		
+		"watch": true,
+		"noEmit": true
+	},
+	"include": [
+		"**/*.ts"
+	]
+}

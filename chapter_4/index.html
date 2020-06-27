@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>signaling</title>
+</head>
+
+<body>
+
+	<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+	<script crossorigin="anonymous" src="https://lib.baomitu.com/sockjs-client/1.4.0/sockjs.min.js"></script>
+	<script>
+		(async () => {
+			const sockjs = new SockJS('http://127.0.0.1:4000/', null, {
+				transports: 'websocket',
+				server: 'room-001'
+			});
+
+		})().catch(console.error);
+	</script>
+</body>
+
+</html>

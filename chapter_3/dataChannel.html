@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>DateChannel</title>
+
+	<style>
+		.text-container {
+			display: flex;
+			flex-direction: row;
+			justify-content: space-around;
+		}
+
+		.text {
+			width: 400px;
+			height: 250px;
+			resize: none;
+		}
+
+
+		.controls {
+			width: 400px;
+			margin: 10px auto;
+			text-align: center;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="text-container">
+		<textarea class="text " name="" id="left-text" cols="30" rows="10"></textarea>
+		<textarea class="text " name="" id="right-text" cols="30" rows="10"></textarea>
+	</div>
+
+	<div class="controls">
+		<button>send</button> <button>stop</button>
+	</div>
+
+
+	<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+	<script>
+		const leftTextarea = document.getElementById('left-text');
+		const rightTextarea = document.getElementById('right-text');
+
+		(async () => {
+			const turnServices = null;
+			const leftPeerConnecction = new RTCPeerConnection(turnServices);
+			const rightPeerConnection = new RTCPeerConnection(turnServices);
+
+
+			// 每当浏览器内部的 ICE 协议机器将新候选者提供给本地对等方时，就会触发 onicecandidate 处理程序。
+			leftPeerConnecction.addEventListener('icecandidate', (evt) => {
+				if (evt.candidate) {
+					console.debug('Right ICE candidate: \n' + evt.candidate.candidate);
+
+					const iceCandidate = new RTCIceCandidate(evt.candidate);
+					rightPeerConnection.addIceCandidate(iceCandidate);
+				}
+			});
+
+			rightPeerConnection.addEventListener('icecandidate', (evt) => {
+				if (evt.candidate) {
+					console.debug('Left ICE candidate: \n ' + evt.candidate.candidate);
+
+					const iceCandidate = new RTCIceCandidate(evt.candidate);
+					leftPeerConnecction.addIceCandidate(iceCandidate);
+				}
+			});
+
+			rightPeerConnection.addEventListener('datachannel', (evt) => {
+				console.debug('Receive Channel Callback: event --> ' + event);
+
+				const dataChannel = event.channel;
+				// Retrieve channel information
+				// Set handlers for the following events:
+
+				// (i) open; (ii) message; (iii) close
+				dataChannel.onopen = () => console.debug('open')
+				dataChannel.onclose = () => console.debug('close')
+				dataChannel.onmessage = (msg) => {
+					console.debug('msg=>', msg);
+					dataChannel.send(`echo=> ${msg.data}`);
+				}
+			});
+
+			const messageChannel = leftPeerConnecction.createDataChannel('message-channel');
+			window.messageChannel = messageChannel;
+			messageChannel.onmessage = console.debug;
+
+			// 呼叫 offer
+			const localDescription = await leftPeerConnecction.createOffer();
+			console.debug("Offer from localPeerConnection: \n" + localDescription.sdp);
+			leftPeerConnecction.setLocalDescription(localDescription);
+			rightPeerConnection.setRemoteDescription(localDescription);
+
+			// 应答 answer
+			const remoteDescription = await rightPeerConnection.createAnswer();
+			console.debug("Answer from rightPeerConnection: \n" + remoteDescription.sdp);
+			rightPeerConnection.setLocalDescription(remoteDescription);
+			leftPeerConnecction.setRemoteDescription(remoteDescription);
+		})().catch(console.error);
+
+	</script>
+
+</body>
+
+</html>

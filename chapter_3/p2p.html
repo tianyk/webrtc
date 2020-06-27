@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>chapter_3</title>
+
+	<style>
+		.video-container {
+			display: flex;
+			flex-direction: row;
+			justify-content: space-around;
+		}
+
+		.video {
+			width: 400px;
+			height: 300px;
+		}
+	</style>
+
+</head>
+
+<body>
+	<div class="video-container">
+		<video class="video" id="local-video" autoplay></video>
+		<video class="video" id="remote-video" autoplay></video>
+	</div>
+
+	<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+	<script>
+		const localVideo = document.getElementById('local-video');
+		const remoteVideo = document.getElementById('remote-video');
+
+		(async () => {
+			// 1. 从本地设备（如麦克风、网络摄像头）创建一个 MediaStream 对象。
+			// 1. 从本地 MediaStream 获取 URL Blob
+			// 1. 使用获取的 URL Blob 进行本地预览
+			const localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: { width: 400, height: 300 } });
+			localVideo.srcObject = localStream;
+
+			const turnServices = null;
+			const localPeerConnecction = new RTCPeerConnection(turnServices);
+			const remotePeerConnection = new RTCPeerConnection(turnServices);
+
+			// 每当浏览器内部的 ICE 协议机器将新候选者提供给本地对等方时，就会触发 onicecandidate 处理程序。
+			localPeerConnecction.addEventListener('icecandidate', (evt) => {
+				if (evt.candidate) {
+					console.debug('Local ICE candidate: \n' + evt.candidate.candidate);
+
+					const iceCandidate = new RTCIceCandidate(evt.candidate);
+					remotePeerConnection.addIceCandidate(iceCandidate);
+				}
+			});
+
+			remotePeerConnection.addEventListener('icecandidate', (evt) => {
+				if (evt.candidate) {
+					console.debug('Remote ICE candidate: \n ' + evt.candidate.candidate);
+
+					const iceCandidate = new RTCIceCandidate(evt.candidate);
+					localPeerConnecction.addIceCandidate(iceCandidate);
+				}
+			});
+			remotePeerConnection.addEventListener('addstream', (evt) => {
+				console.debug("Received remote stream");
+				remoteVideo.srcObject = evt.stream;
+			});
+
+
+			// 启动
+			localPeerConnecction.addStream(localStream);
+			// 呼叫 offer
+			const localDescription = await localPeerConnecction.createOffer();
+			console.debug("Offer from localPeerConnection: \n" + localDescription.sdp);
+			localPeerConnecction.setLocalDescription(localDescription);
+			remotePeerConnection.setRemoteDescription(localDescription);
+
+			// 应答 answer
+			const remoteDescription = await remotePeerConnection.createAnswer();
+			console.debug("Answer from remotePeerConnection: \n" + remoteDescription.sdp);
+			remotePeerConnection.setLocalDescription(remoteDescription);
+			localPeerConnecction.setRemoteDescription(remoteDescription);
+
+		})().catch(console.error);
+	</script>
+</body>
+
+</html>

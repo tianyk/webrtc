@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>chapter_2</title>
+
+	<style>
+		#local-video {
+			width: 400px;
+			height: 300px;
+		}
+	</style>
+</head>
+
+<body>
+	<video id="local-video"></video>
+
+	<script>
+		const localVideo = document.getElementById('local-video');
+		(async () => {
+			const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: { width: 400, height: 300 } });
+			localVideo.srcObject = mediaStream;
+			localVideo.play();
+		})().catch(console.error);
+	</script>
+</body>
+
+</html>
