@@ -117,7 +117,7 @@ const rooms = new Map<string, Room>();
 
 webRTCServer.on('connection', (conn) => {
 	const matched = urlMath(conn.url);
-	if (!matched) return conn.close('not matched');
+	if (!matched) return conn.close();
 
 	// 加入教室
 	const { roomId, sessionId } = matched.params;
